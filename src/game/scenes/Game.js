@@ -223,6 +223,76 @@ export class Game extends Scene {
         // UI TEXT
         this.initGameUi();
        
+        
+        // PLAYER MOBILE CONTROLS
+        const accelRadius = 60;
+        const accelX = 70 + accelRadius;
+        const accelY = this.scale.height - 80 - accelRadius;
+
+        // Draw translucent circle for accelerator
+        this.accelButtonBg = this.add.circle(accelX, accelY, accelRadius, 0xffffff, 0.25)
+            .setScrollFactor(0)
+            .setDepth(200);
+
+        // Add invisible interactive area for touch
+        this.accelButton = this.add.circle(accelX, accelY, accelRadius, 0xffffff, 0.01)
+            .setInteractive({ useHandCursor: false })
+            .setScrollFactor(0)
+            .setDepth(201);
+
+        // Track state
+        this.isAccelerating = false;
+
+        // Touch events
+        this.accelButton.on('pointerdown', () => { this.isAccelerating = true; });
+        this.accelButton.on('pointerup', () => { this.isAccelerating = false; });
+        this.accelButton.on('pointerout', () => { this.isAccelerating = false; });
+
+        // Steering joystick setup
+const steerRadius = 60;
+const steerX = 1300 + steerRadius;
+const steerY = this.scale.height - 150; // Place above accelerator
+
+// Draw translucent circle for steering
+this.steerJoyBg = this.add.circle(steerX, steerY, steerRadius, 0xffffff, 0.18)
+    .setScrollFactor(0)
+    .setDepth(200);
+
+// Add invisible interactive area for touch
+this.steerJoyArea = this.add.circle(steerX, steerY, steerRadius, 0xffffff, 0.01)
+    .setInteractive({ useHandCursor: false })
+    .setScrollFactor(0)
+    .setDepth(201);
+
+// State for joystick
+this.steerInput = { active: false, angle: 0, force: 0 };
+
+// Touch events for steering
+this.steerJoyArea.on('pointerdown', pointer => {
+    this.steerInput.active = true;
+    this.steerInput.startX = pointer.x;
+    this.steerInput.startY = pointer.y;
+});
+this.steerJoyArea.on('pointerup', () => {
+    this.steerInput.active = false;
+    this.steerInput.force = 0;
+});
+this.steerJoyArea.on('pointerout', () => {
+    this.steerInput.active = false;
+    this.steerInput.force = 0;
+});
+this.steerJoyArea.on('pointermove', pointer => {
+    if (this.steerInput.active) {
+        const dx = pointer.x - steerX;
+        const dy = pointer.y - steerY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        this.steerInput.angle = Math.atan2(dy, dx); // Radians
+        this.steerInput.force = Math.min(dist / steerRadius, 1); // 0..1
+    }
+});
+
+
+
         // Start game timer activates key function
         this.input.keyboard.on('keydown-SPACE', () => {
             if (!this.countdownActive && !this.raceStarted) {
@@ -265,17 +335,50 @@ export class Game extends Scene {
             // PLAYER LAP TIMER
             const currentLapTime = (this.time.now - this.lapStartTime) / 1000;
             this.lapTimerText.setText(`Lap Time: ${currentLapTime.toFixed(2)}`);
-        
-        }
 
+             // Mobile accelerator logic
+            if (this.isAccelerating) {
+                this.player.setAcceleration(0.0015); // Adjust as needed
+            } else {
+                this.player.setAcceleration(-0.001); // Brake when not pressing
+                }
+            this.steering_Logic();
+
+        }
+        
+    
+            // DEBUG ITEMS
             this.carDebugText.setText(this.getCarDebugText(this.cars[1], 'CAR 1'));
             this.carDebugText.setVisible(window.DEBUG);
             this.pointerDebugText.setVisible(window.DEBUG);
+            // Pointer debug
+            const pointer = this.input.activePointer;
+            this.pointerDebugText.setText(
+                `Pointer: (${pointer.worldX.toFixed(0)}, ${pointer.worldY.toFixed(0)})`);
+    }
 
-        // Pointer debug
-        const pointer = this.input.activePointer;
-        this.pointerDebugText.setText(
-            `Pointer: (${pointer.worldX.toFixed(0)}, ${pointer.worldY.toFixed(0)})`);
+    steering_Logic() {
+        // Steering logic
+if (this.steerInput && this.steerInput.active && this.steerInput.force > 0.2) {
+    // Calculate desired angle relative to world
+    const desiredAngle = this.steerInput.angle;
+    // Calculate angle difference between car's nose and joystick direction
+    const carAngle = this.player.rotation;
+    let angleDiff = Phaser.Math.Angle.Wrap(desiredAngle - carAngle);
+
+    // Apply steering: setAngularVelocity or setWheelAngle, depending on your car code
+    // Here, we simply steer left/right based on angleDiff
+    const steerStrength = 0.07 * this.steerInput.force; // Adjust as needed
+    if (angleDiff > 0.1) {
+        this.player.setAngularVelocity(steerStrength);
+    } else if (angleDiff < -0.1) {
+        this.player.setAngularVelocity(-steerStrength);
+    } else {
+        this.player.setAngularVelocity(0);
+    }
+} else {
+    this.player.setAngularVelocity(0);
+}
     }
 
     initLeaderBoard(){
@@ -579,6 +682,8 @@ export class Game extends Scene {
             .setDepth(100)
             .setVisible(false);
     }
+
+    
 
     getCarDebugText(car, label) {
         // Find the driver for this car
