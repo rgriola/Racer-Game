@@ -163,3 +163,76 @@ Created by [Phaser Studio](mailto:support@phaser.io). Powered by coffee, anime, 
 The Phaser logo and characters are &copy; 2011 - 2025 Phaser Studio Inc.
 
 All rights reserved.
+
+# RACER-GAME TODO
+
+# Follow these coding guidelines:
+
+# USE Phaser 3.87.0 API Documentation Whenever possible.
+# URL: https://docs.phaser.io/api-documentation/api-documentation
+# Phaser.js is the source code for the Phaser API you have permission to check it before creating code.
+
+# Always try and use Phaser for as a guide for creating code.
+# Always try to use established code first before making new functions or classes.
+# When making suggestions for code always include the filename at the top. 
+
+######
+# Features to add
+# User login and log off
+# Splash page (Boot.js)
+# MainMenu interface - game choice BOTS OR MULTIPLAYER
+# LOBBY for Multiplayer set up. 10 players
+# HUMAN Car Controls - For Mobile and Computer
+# Multiple Track Choices -
+# Preview of all Cars and Driver (player names)
+# NUMBERS to top of cars
+# Camera System - World Turns around charecter
+# -- mini map idk if its needed
+# POWER UP Obstacles, Speed Up, Slowdowns
+# SPECIAL Car abilities - dump oil, super slam
+# Point system for damage, hits, special objects
+# history database, login, car info
+# car customization and powers 
+# multiple car types with specific parameters
+# persistant game where multi players can drop in. 
+# reward system for engagement.
+
+#. Ways to Make Bots Learn or Optimize Their Route
+1. Dynamic Waypoint Selection (Simple Improvement)
+Instead of always going to the next waypoint, let the bot pick the nearest or most "reachable" waypoint if it misses one.
+You can also allow bots to skip waypoints if they're closer to a later one (useful for shortcuts).
+2. Multiple Paths / Branches
+Design your track with alternate waypoint routes (like real racing lines).
+Bots can randomly or strategically choose between them, or pick the one with less traffic.
+3. Racing Line Optimization (Intermediate)
+Precompute an "optimal racing line" (the smoothest, fastest path through the waypoints).
+Bots follow this line, adjusting for obstacles and other cars.
+4. Machine Learning (Advanced)
+Use reinforcement learning (RL) to let bots "learn" the fastest way around the track by trial and error.
+This is complex and requires a training phase, but can produce very human-like racing behavior.
+Example: DeepRacer or OpenAI Gym CarRacing-v0.
+5. Record and Replay (Practical)
+Record a fast lap by a human or a "ghost" bot, then have AI bots follow that path as their racing line.
+
+# README RACER-GAME
+
+
+## Features
+
+
+## Installation
+
+- [Describe key features of your game, e.g. single/multiplayer, different tracks, customizable vehicles, etc.]
+- [List technologies or frameworks used]
+# player controled race car competes against AI controlled race cars.
+# player controls the car by mouse/trackpad/touch screen input with the direction of the car shown with a small white dot at the front of the car. 
+# all car png images are oriented to the right, 0 degrees, this is the front of the car. The rear of the car is at 270, to the left. s
+# Each race is on a different track, 3 laps per race.
+# The car field starts in 2 rows with 3 columns.
+# A lap is recorded when a car completes the entire track from the starting line through the track to the starting line, this is 1 lap. This is also where the game finishes, when all cars complete 3 laps.
+# in post race, after all cars finish the race - all the cars continue at a preset lower speed while the game summary is shown on the game screen.  
+# the player can start the next track by space bar input. 
+
+
+# I need to create three tracks for my racing game. These tracks should use the same cars and start file, each track could be considered a level or progression to a championship.   I need a simple AI driver for the AI cars- these AI will avoid the walls of the track and other cars, although sometimes cars will hit each other.   There needs to be a player input for the car direction using player controls the car by mouse/trackpad/touch screen input with the direction of the car shown with a small white dot at the front of the car.  # racer-game-new
+

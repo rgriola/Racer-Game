@@ -1,0 +1,16 @@
+/* assets/fonts/fonts.css */
+@font-face {
+    font-family: 'DraftBeer';
+    src: url('assets/fonts/DraftBeer.ttf') format('tff'),
+         url('assets/fonts/DraftBeer.ttf') format('tff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'norwester';
+    src: url('assets/fonts/norwester.otf') format('otf'),
+         url('assets/fonts/norwester.otf') format('otf');
+    font-weight: normal;
+    font-style: normal;
+}

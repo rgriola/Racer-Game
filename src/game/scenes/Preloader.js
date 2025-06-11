@@ -1,46 +1,68 @@
 import { Scene } from 'phaser';
 
-export class Preloader extends Scene
-{
-    constructor ()
-    {
+import CAR_CONFIG from '../carConfig.js';
+
+export class Preloader extends Phaser.Scene {
+    constructor() {
         super('Preloader');
     }
 
-    init ()
-    {
+    init() {
+        const centreX = this.scale.width * 0.5;
+        const centreY = this.scale.height * 0.5;
+
+        const barWidth = 468;
+        const barHeight = 32;
+        const barMargin = 4;
         //  We loaded this image in our Boot Scene, so we can display it here
-        this.add.image(512, 384, 'background');
 
         //  A simple progress bar. This is the outline of the bar.
-        this.add.rectangle(512, 384, 468, 32).setStrokeStyle(1, 0xffffff);
+        this.add.rectangle(centreX, centreY, barWidth, barHeight).setStrokeStyle(1, 0xffffff);
 
         //  This is the progress bar itself. It will increase in size from the left based on the % of progress.
-        const bar = this.add.rectangle(512-230, 384, 4, 28, 0xffffff);
+        const bar = this.add.rectangle(centreX - (barWidth * 0.5) + barMargin, 
+                                    centreY, barMargin, barHeight - barMargin, 0xffffff);
 
         //  Use the 'progress' event emitted by the LoaderPlugin to update the loading bar
         this.load.on('progress', (progress) => {
-
             //  Update the progress bar (our bar is 464px wide, so 100% = 464px)
-            bar.width = 4 + (460 * progress);
-
-        });
+            bar.width = barMargin + ((barWidth - (barMargin * 2)) * progress);
+            });
     }
 
-    preload ()
-    {
-        //  Load the assets for the game - Replace with your own assets
-        this.load.setPath('assets');
+    preload() {
+        this.load.image('red', 'assets/red.png');
 
-        this.load.image('logo', 'logo.png');
+        this.load.image('bg_track', 'assets/bg_track.png');
+        //src/assets/track/finishline.png
+        this.load.image('finishline', 'assets/track/finishline.png');
+        this.load.image('wall_orange_200', 'assets/track/wall_orange_200.png');
+        this.load.image('wall_poly_green', 'assets/track/wall_poly_green.png');
+        this.load.image('wall_poly_orange', 'assets/track/wall_poly_orange.png');
+        this.load.image('wall_red_100_vert', 'assets/track/wall_red_100_vert.png');
+        this.load.image('wall_red_100', 'assets/track/wall_red_100.png');
+        this.load.image('wall_red_200', 'assets/track/wall_red_200.png');
+        this.load.image('wall_white_100_vert', 'assets/track/wall_white_100_vert.png');
+        this.load.image('wall_white_100', 'assets/track/wall_white_100.png');
+        
+    
+    // Load the car images from carConfig.js
+    for (let type in CAR_CONFIG) {
+        for (let key in CAR_CONFIG[type]) {
+            let args = CAR_CONFIG[type][key].args.slice();
+            args.unshift(CAR_CONFIG[type][key].key);
+            this.load[type].apply(this.load, args);
+        }
     }
+}
 
-    create ()
-    {
-        //  When all the assets have loaded, it's often worth creating global objects here that the rest of the game can use.
-        //  For example, you can define global animations here, so we can use them in other scenes.
+create(){
 
-        //  Move to the MainMenu. You could also swap this for a Scene Transition, such as a camera fade.
-        this.scene.start('MainMenu');
-    }
+    //this.add.image(400, 300, 'bg'); // background
+    console.log("PRELOADED");
+    //this.scene.start('TrackTest');
+    //this.scene.start('Start');
+    this.scene.start('Game');
+}
+
 }
