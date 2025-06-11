@@ -377,7 +377,8 @@ this.steerJoyArea.on('pointermove', pointer => {
     steering_Logic() {
     if (this.steerInput && this.steerInput.active && this.steerInput.force > 0.2) {
         // Offset by Math.PI for left-facing car
-        const desiredAngle = this.steerInput.angle + Math.PI;
+       // const desiredAngle = this.steerInput.angle + Math.PI;
+       const desiredAngle = this.steerInput.angle;
         const carAngle = this.player.rotation;
         let angleDiff = Phaser.Math.Angle.Wrap(desiredAngle - carAngle);
 
