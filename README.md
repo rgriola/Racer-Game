@@ -6,6 +6,13 @@ This is a Phaser 3 project template that uses webpack for bundling. It supports 
 
 ### Versions
 
+ "scripts": {
+        "build": "webpack --config webpack/config.js",
+        "copy:docs": "cp -R dist/* docs/",
+        "dev:both": "npm run dev && npm run copy:docs"
+        }
+
+
 This template has been updated for:
 
 - [Phaser 3.90.0](https://github.com/phaserjs/phaser)

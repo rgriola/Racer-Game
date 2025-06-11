@@ -291,7 +291,31 @@ this.steerJoyArea.on('pointermove', pointer => {
     }
 });
 
+        // START BUTTON (centered, visible only before race starts)
+    this.startButton = this.add.text(
+        this.scale.width / 2, this.scale.height - 120,
+        'START RACE',
+        {
+            fontFamily: 'Orbitron, Share Tech Mono, Courier, monospace',
+            fontSize: 48,
+            color: '#ffe600',
+            backgroundColor: '#222a',
+            padding: { left: 32, right: 32, top: 16, bottom: 16 },
+            align: 'center',
+            stroke: '#000', strokeThickness: 4
+        }
+    ).setOrigin(0.5)
+     .setInteractive({ useHandCursor: true })
+     .setDepth(300)
+     .setVisible(true);
 
+    // Touch/click event
+    this.startButton.on('pointerdown', () => {
+        if (!this.countdownActive && !this.raceStarted) {
+            this.startButton.setVisible(false);
+            this.startCountdown();
+        }
+    });
 
         // Start game timer activates key function
         this.input.keyboard.on('keydown-SPACE', () => {
