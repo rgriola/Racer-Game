@@ -35,8 +35,14 @@ export class Game extends Scene {
         this.trackWaypoints = this.track.trackWaypoints;
         this.lapline = this.track.lapline;
 
+
+        // Car configs for AI cars
+        const poleX = 630;
+        const insideY = 95;
+        const outside = 70;
+
         // Player car (uses your Player class)
-        this.player = new Player(this, 630, 250, 0);
+        this.player = new Player(this, poleX , insideY, 0);
         this.player.setScale(.1)
             .setBounce(1)
             .setMass(1500);
@@ -49,12 +55,8 @@ export class Game extends Scene {
         this.cars = [this.player]; // Array of all cars (player first)
         this.drivers = [];         // Array of all AI drivers
 
-        // Car configs for AI cars
-        const poleX = 630;
-        const insideY = 250;
-        const outside = 225;
         this.aiCarConfigs = [
-            { x: poleX, y: 225, carKey: 'car_02', isAI: true, label: 'car1' }, // row 1 
+            { x: poleX, y: outside, carKey: 'car_02', isAI: true, label: 'car1' }, // row 1 
             { x: poleX + 40, y: insideY, carKey: 'car_03', isAI: true, label: 'car2' }, // row 2
             { x: poleX + 40, y: outside, carKey: 'car_04', isAI: true, label: 'car3' },
             { x: poleX + (40 * 2), y: insideY, carKey: 'car_05', isAI: true, label: 'car4' }, // row 3
@@ -91,8 +93,8 @@ export class Game extends Scene {
         // WORLD BOUNDS
         this.matter.world.setBounds(0, 0, 
                                     this.sys.game.config.width, 
-                                    this.sys.game.config.height, 
-                                    100, true, true, true, true);
+                                    this.sys.game.config.height,
+                                    25, true, true, true, true);
         
          // Lapline and collision logic
         this.carFinished = {};
@@ -124,9 +126,11 @@ export class Game extends Scene {
                     }
                 });
 
-                // Lapline logic
+                // LAPLINE 
                 this.cars.forEach(car => {
                     const key = car === this.player ? 'player' : this.aiCarConfigs[this.cars.indexOf(car) - 1]?.label;
+                    
+                    
                     if (
                         ((objA === car && objB === this.lapline) ||
                             (objB === car && objA === this.lapline))
@@ -137,12 +141,20 @@ export class Game extends Scene {
                             if (!car.hasStarted) {
                                 car.hasStarted = true;
                                 car.lapCount = 0;
+                                console.log(`Car ${key}` , car.lapCount);
+                                this.updateLeaderBoardHorizontal();
                             } else {
                                 car.lapCount++;
                                 if (!car.lapCrossTimes) car.lapCrossTimes = [];
                                 car.lapCrossTimes[car.lapCount] = this.time.now;
                                 //this.updateLeaderBoardText();
+                                this.updateLeaderBoardHorizontal();
                                 }
+                            
+                            // need to consoldate player anc AI cars, and insert player 
+                            // controls .  
+                            // next fold all collisions and data tracking into car class
+                            // and checking of data.
 
                             // Update global lap
                             const maxLap = Math.max(...this.cars.map(c => c.lapCount));
@@ -166,16 +178,19 @@ export class Game extends Scene {
                                 // Stop race timer at leader finish
                                 if (this.finishedCars === 1) {
                                     this.raceEndTime = this.time.now;
+
                                 }
 
                                 if (this.finishedCars >= this.cars.length) {
+                                    
                                     this.raceStarted = false;
                                     this.gameOverText.setVisible(true);
                                     this.gameOverText.setText('Race Over!');
                                     this.raceAgainButton.setVisible(true);
                                 }
                             }
-                            this.updateLeaderBoardText();
+                            //this.updateLeaderBoardText();
+                            //this.updateLeaderBoardHorizontal();
                         }
                     }
                 });
@@ -202,7 +217,8 @@ export class Game extends Scene {
         
         //INITIALIZE LEADERBOARD + POPULATE
         this.initLeaderBoard();
-        this.updateLeaderBoardText();
+        //this.updateLeaderBoardText();
+        this.updateLeaderBoardHorizontal();
 
         // UI TEXT
         this.initGameUi();
@@ -267,24 +283,24 @@ export class Game extends Scene {
         this.leaderBoard = ['player', ...this.aiCarConfigs.map(cfg => cfg.label)];
 
         // Calculate leaderboard height dynamically
-        const numCars = 1 + this.aiCarConfigs.length; // 1 for player + AI cars
-        const rowHeight = 30; // Adjust if your font size changes
-        const titleHeight = 32; // Height for the "RACE ORDER" title
-        const padding = 20; // Top and bottom padding
+      //  const numCars = 1 + this.aiCarConfigs.length; // 1 for player + AI cars
+      //  const rowHeight = 30; // Adjust if your font size changes
+      //  const titleHeight = 32; // Height for the "RACE ORDER" title
+      //  const padding = 20; // Top and bottom padding
 
-        const leaderboardHeight = titleHeight + (numCars * rowHeight) + padding;
+      //  const leaderboardHeight = titleHeight + (numCars * rowHeight) + padding;
 
         this.leaderBoardBg = this.add.graphics();
         this.leaderBoardBg.fillStyle(0x111111, 0.5); // dark, semi-transparent
         this.leaderBoardBg.fillRoundedRect(
-            this.scale.width - 300, 30, 300, leaderboardHeight, 16
+            50, 500, 600, 100, 16
         );
 
         // Racing-style font (Orbitron). Make sure to load it in your HTML or as a bitmap font!
         this.racingFont = 'Orbitron, Share Tech Mono, Courier, monospace';
         this.myTextStyle = {
             fontFamily: this.racingFont,
-            fontSize: 22,
+            fontSize: 14,
             color: '#ffe600',
             stroke: '#000000',
             strokeThickness: 2,
@@ -297,10 +313,6 @@ export class Game extends Scene {
                 fill: true
             }
         }
-
-        // Leaderboard text
-        this.leaderBoardText = this.add.text(this.scale.width - 350, 50, '', 
-                               this.myTextStyle).setDepth(101);
     }
 
     updateLeaderBoardText() {
@@ -313,7 +325,7 @@ export class Game extends Scene {
                 name: `CAR ${idx + 1}`
             }))
         ];
-
+    
     cars.sort((a, b) => {
             if (b.obj.lapCount !== a.obj.lapCount) {
                 return b.obj.lapCount - a.obj.lapCount;
@@ -376,6 +388,95 @@ export class Game extends Scene {
         });
         this.leaderBoardText.setText(text);
     }
+
+    updateLeaderBoardHorizontal() {
+    // Sort cars as in updateLeaderBoardText
+    const cars = [
+        { obj: this.player, key: 'player', name: 'PLAYER' },
+        ...this.cars.slice(1).map((car, idx) => ({
+            obj: car,
+            key: this.aiCarConfigs[idx]?.label,
+            name: `CAR ${idx + 1}`
+        }))
+    ];
+
+    cars.sort((a, b) => {
+        if (b.obj.lapCount !== a.obj.lapCount) {
+            return b.obj.lapCount - a.obj.lapCount;
+        }
+        return this.leaderBoard.indexOf(a.key) - this.leaderBoard.indexOf(b.key);
+    });
+
+    // Only show top 5
+    const top5 = cars.slice(0, 5);
+
+    // Create text objects if not already
+    if (!this.leaderBoardSlots) {
+        this.leaderBoardSlots = [];
+        for (let i = 0; i < 5; i++) {
+            const x = 75 + i * 100; // Adjust spacing as needed
+            const y = 510; // Adjust vertical position as needed
+            const text = this.add.text(x, y, '', this.myTextStyle).setDepth(102);
+            this.leaderBoardSlots.push(text);
+        }
+    }
+
+    // Get leader's info for gap/time calculations
+    const leader = top5[0].obj;
+    const leaderLap = leader.lapCount;
+    const leaderLapTime = leader.lapCrossTimes?.[leaderLap] || this.time.now;
+
+    // Update each slot
+    top5.forEach((car, idx) => {
+        const lap = String(car.obj.lapCount).padStart(2, ' ');
+        let speedMph = 0;
+        if (car.obj.body && car.obj.body.velocity) {
+            const stepsPerSecond = 60;
+            const metersPerPixel = 0.206;
+            const v = car.obj.body.velocity;
+            const speedPps = Math.sqrt(v.x ** 2 + v.y ** 2) * stepsPerSecond;
+            const speedMps = speedPps * metersPerPixel;
+            speedMph = speedMps * 2.23694;
+        }
+        const mph = speedMph.toFixed(1);
+
+        // Calculate gap or time
+        let gap = '';
+        if (idx === 0) {
+            // Show leader's overall race time in mm:ss.xx format
+            const overallMs = this.raceEndTime && this.carFinished[car.key]
+                ? this.raceEndTime - this.raceStartTime
+                : this.time.now - this.raceStartTime;
+            const overallSec = overallMs / 1000;
+            const min = Math.floor(overallSec / 60);
+            const sec = (overallSec % 60).toFixed(2).padStart(5, '0');
+            gap = `${min}:${sec}`;
+        } else {
+            const carLapTime = car.obj.lapCrossTimes?.[leaderLap];
+            if (
+                car.obj.lapCount === leaderLap &&
+                typeof carLapTime === 'number'
+            ) {
+                let diffMs = carLapTime - leaderLapTime;
+                if (diffMs < 0) diffMs = 0;
+                const diffSec = diffMs / 1000;
+                gap = `-${diffSec.toFixed(2)}s`;
+            } else {
+                gap = '---';
+            }
+        }
+
+        this.leaderBoardSlots[idx].setText(
+            `${idx + 1}. ${car.name}\nLap: ${lap}\nMPH: ${mph}\n${gap}`
+        );
+        this.leaderBoardSlots[idx].setVisible(true);
+    });
+
+    // Hide unused slots if fewer than 5 cars
+    for (let i = top5.length; i < 5; i++) {
+        this.leaderBoardSlots[i].setVisible(false);
+    }
+}
 
     startCountdown() {
         this.countdown = 5;
