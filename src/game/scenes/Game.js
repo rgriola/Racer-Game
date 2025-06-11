@@ -312,7 +312,7 @@ this.steerJoyArea.on('pointermove', pointer => {
     // Touch/click event
     this.startButton.on('pointerdown', () => {
         if (!this.countdownActive && !this.raceStarted) {
-            this.startButton.setVisible(false);
+            this.startButton.setVisible(true);
             this.startCountdown();
         }
     });
