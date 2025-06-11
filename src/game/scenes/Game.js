@@ -225,7 +225,7 @@ export class Game extends Scene {
        
 
         // PLAYER MOBILE CONTROLS
-        const accelRadius = 60;
+        const accelRadius = 100;
         const accelX = 70 + accelRadius;
         const accelY = this.scale.height - 80 - accelRadius;
 
@@ -249,7 +249,7 @@ export class Game extends Scene {
         this.accelButton.on('pointerout', () => { this.isAccelerating = false; });
 
         // Steering joystick setup
-const steerRadius = 60;
+const steerRadius = 100;
 const steerX = 1300 + steerRadius;
 const steerY = this.scale.height - 150; // Place above accelerator
 
