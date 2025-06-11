@@ -375,28 +375,24 @@ this.steerJoyArea.on('pointermove', pointer => {
     }
 
     steering_Logic() {
-        // Steering logic
-if (this.steerInput && this.steerInput.active && this.steerInput.force > 0.2) {
-    // Calculate desired angle relative to world
-    const desiredAngle = this.steerInput.angle;
-    // Calculate angle difference between car's nose and joystick direction
-    const carAngle = this.player.rotation;
-    let angleDiff = Phaser.Math.Angle.Wrap(desiredAngle - carAngle);
+    if (this.steerInput && this.steerInput.active && this.steerInput.force > 0.2) {
+        // Offset by Math.PI for left-facing car
+        const desiredAngle = this.steerInput.angle + Math.PI;
+        const carAngle = this.player.rotation;
+        let angleDiff = Phaser.Math.Angle.Wrap(desiredAngle - carAngle);
 
-    // Apply steering: setAngularVelocity or setWheelAngle, depending on your car code
-    // Here, we simply steer left/right based on angleDiff
-    const steerStrength = 0.07 * this.steerInput.force; // Adjust as needed
-    if (angleDiff > 0.1) {
-        this.player.setAngularVelocity(steerStrength);
-    } else if (angleDiff < -0.1) {
-        this.player.setAngularVelocity(-steerStrength);
+        const steerStrength = 0.07 * this.steerInput.force; // Adjust as needed
+        if (angleDiff > 0.1) {
+            this.player.setAngularVelocity(steerStrength);
+        } else if (angleDiff < -0.1) {
+            this.player.setAngularVelocity(-steerStrength);
+        } else {
+            this.player.setAngularVelocity(0);
+        }
     } else {
         this.player.setAngularVelocity(0);
     }
-} else {
-    this.player.setAngularVelocity(0);
 }
-    }
 
     initLeaderBoard(){
         // Initial Leader Board order
