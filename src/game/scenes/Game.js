@@ -223,7 +223,7 @@ export class Game extends Scene {
         // UI TEXT
         this.initGameUi();
        
-        
+
         // PLAYER MOBILE CONTROLS
         const accelRadius = 60;
         const accelX = 70 + accelRadius;
@@ -314,7 +314,7 @@ this.steerJoyArea.on('pointermove', pointer => {
 
     update(time, delta) {
         if (this.raceStarted) {
-            this.player.update();
+            this.player.update(time, delta, { accelerate: this.isAccelerating });
             this.drivers.forEach(driver => driver.update(delta / 1000));
             
             // Update prevX for lap direction check
@@ -336,12 +336,6 @@ this.steerJoyArea.on('pointermove', pointer => {
             const currentLapTime = (this.time.now - this.lapStartTime) / 1000;
             this.lapTimerText.setText(`Lap Time: ${currentLapTime.toFixed(2)}`);
 
-             // Mobile accelerator logic
-            if (this.isAccelerating) {
-                this.player.setAcceleration(0.0015); // Adjust as needed
-            } else {
-                this.player.setAcceleration(-0.001); // Brake when not pressing
-                }
             this.steering_Logic();
 
         }

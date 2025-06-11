@@ -109,10 +109,8 @@ export default class Player extends Phaser.Physics.Matter.Image {
         console.log('Player Constructor');
     }
 
-    update(time, delta) {
-       // super.preUpdate(time, delta);
-       // if (this.fireCounter > 0) this.fireCounter--;
-        this.checkInput();
+    update(time, delta, input = {}) {
+        this.checkInput(input);
         //this.updatePixelsPerSecond();
         this.updateMph();
         this.prevX = this.x; // checks movement
@@ -151,35 +149,37 @@ export default class Player extends Phaser.Physics.Matter.Image {
         this.bodyVelocityText.setText(`Speed: ${speedPps.toFixed(1)} px/s`);
     }
 
-    checkInput(){
+    checkInput(input = {}) {
         // SPEED IS CONTROLED BY THE SPACE BAR
         const stepsPerSecond = 60;
         const velocityMaxPerStep = this.velocityMax / stepsPerSecond;
         const acceleration = (this.velocityIncrement * this.plusAccel) / stepsPerSecond; // Tune this value for feel
         const deceleration = (this.velocityIncrement * this.minusDecel) / stepsPerSecond; // Tune for how quickly it slows down
 
-        if (this.spaceKey.isDown){
-            // Accelerate up to max speed
-            this.currentSpeed = Math.min(this.currentSpeed + acceleration, velocityMaxPerStep);
-            const angle = this.rotation;
-            this.setVelocity(
-                Math.cos(angle) * this.currentSpeed,
-                Math.sin(angle) * this.currentSpeed
-            );
-        } else {
-            // Decelerate to zero
-            this.currentSpeed = Math.max(this.currentSpeed - deceleration, 0);
-            const angle = this.rotation;
-            this.setVelocity(
-                Math.cos(angle) * this.currentSpeed,
-                Math.sin(angle) * this.currentSpeed
-            );
-            // Optionally, stop completely if very slow
-            if (this.currentSpeed < 0.5) {
-                this.setVelocity(0, 0);
-                this.currentSpeed = 0;
-                }
-            }
+            // Accepts: input.accelerate (boolean)
+        const accelerating = (this.spaceKey && this.spaceKey.isDown) || input.accelerate;
+
+        if (accelerating) {
+        // Accelerate up to max speed
+        this.currentSpeed = Math.min(this.currentSpeed + acceleration, velocityMaxPerStep);
+        const angle = this.rotation;
+        this.setVelocity(
+            Math.cos(angle) * this.currentSpeed,
+            Math.sin(angle) * this.currentSpeed
+        );
+    } else {
+        // Decelerate to zero
+        this.currentSpeed = Math.max(this.currentSpeed - deceleration, 0);
+        const angle = this.rotation;
+        this.setVelocity(
+            Math.cos(angle) * this.currentSpeed,
+            Math.sin(angle) * this.currentSpeed
+        );
+        if (this.currentSpeed < 0.5) {
+            this.setVelocity(0, 0);
+            this.currentSpeed = 0;
+        }
+    }
 }
 
     die() {
