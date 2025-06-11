@@ -16,10 +16,10 @@ const config = {
     dom: {
         createContainer: true
     },
-   // width: 1500,
-   // height: 650,
-    width: window.innerWidth,
-    height: window.innerHeight,
+    width: 1500,
+    height: 650,
+    //width: window.innerWidth,
+    //height: window.innerHeight,
     backgroundColor: '#028af8',
     fps: {
         target: 60,
