@@ -223,11 +223,10 @@ export class Game extends Scene {
         // UI TEXT
         this.initGameUi();
        
-
         // PLAYER MOBILE CONTROLS
-        const accelRadius = 200;
-        const accelX = 70 + accelRadius;
-        const accelY = this.scale.height - 80 - accelRadius;
+        const accelRadius = 150;
+        const accelX = 50 + accelRadius;
+        const accelY = this.scale.height - 30 - accelRadius;
 
         // Draw translucent circle for accelerator
         this.accelButtonBg = this.add.circle(accelX, accelY, accelRadius, 0xffffff, 0.25)
@@ -249,9 +248,9 @@ export class Game extends Scene {
         this.accelButton.on('pointerout', () => { this.isAccelerating = false; });
 
         // Steering joystick setup
-const steerRadius = 200;
-const steerX = 1300 + steerRadius;
-const steerY = this.scale.height - 150; // Place above accelerator
+const steerRadius = 150;
+const steerX = 1150 + steerRadius;
+const steerY = this.scale.height - 200; // Place above accelerator
 
 // Draw translucent circle for steering
 this.steerJoyBg = this.add.circle(steerX, steerY, steerRadius, 0xffffff, 0.18)
@@ -293,7 +292,7 @@ this.steerJoyArea.on('pointermove', pointer => {
 
         // START BUTTON (centered, visible only before race starts)
     this.startButton = this.add.text(
-        this.scale.width / 2, this.scale.height - 120,
+        this.scale.width / 2, this.scale.height - 250,
         'START RACE',
         {
             fontFamily: 'Orbitron, Share Tech Mono, Courier, monospace',
