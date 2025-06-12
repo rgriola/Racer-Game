@@ -168,7 +168,7 @@ export default class Player extends Phaser.Physics.Matter.Image {
         let steerAngular = 0;
         if (input.steer && input.steer.active && input.steer.force > 0.2) {
             // For left-facing car, offset by Math.PI
-            const desiredAngle = input.steer.angle + Math.PI;
+            const desiredAngle = input.steer.angle;
             const carAngle = this.rotation;
             let angleDiff = Phaser.Math.Angle.Wrap(desiredAngle - carAngle);
             const steerStrength = 0.07 * input.steer.force;
