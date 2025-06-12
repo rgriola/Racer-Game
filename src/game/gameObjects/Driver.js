@@ -3,7 +3,7 @@ export class Driver {
         this.car = car;
         this.scene = car.scene;
         // Match player per-step max speed
-        this.maxSpeed = 450; // ≈ 3.616 px/step
+        this.maxSpeed = 100; // ≈ 3.616 px/step
         this.steerForce = 0.08;
         this.lookAhead = 150;
         this.missDistance = 50; 
@@ -38,7 +38,7 @@ export class Driver {
         this.setInterest();
         this.setDanger();
         this.chooseDirection();
-
+        
         let desiredVelocity = this.chosenDir.clone().scale(this.maxSpeed);
             if (this._shouldSlowDown) {
                 desiredVelocity = desiredVelocity.scale(0.2); // Slow to 20% speed if blocked
@@ -53,6 +53,8 @@ export class Driver {
 
         // Set velocity in Matter.js (scaled by dt for smoothness)
         this.car.setVelocity(this.velocity.x * dt, this.velocity.y * dt);
+        console.log(`Velocity: ${this.velocity.x.toFixed(2)}, ${this.velocity.y.toFixed(2)}`);
+
 
         /// Advance to next waypoint if close
         if (this.scene.trackWaypoints && typeof this.car.currentWaypoint === 'number') {

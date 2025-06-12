@@ -223,72 +223,105 @@ export class Game extends Scene {
         // UI TEXT
         this.initGameUi();
        
-        // PLAYER MOBILE CONTROLS
-        const accelRadius = 150;
-        const accelX = 50 + accelRadius;
-        const accelY = this.scale.height - 30 - accelRadius;
 
-        // Draw translucent circle for accelerator
-        this.accelButtonBg = this.add.circle(accelX, accelY, accelRadius, 0xffffff, 0.25)
+        // DEVICE DETECTION
+        this.isMobile = this.sys.game.device.os.android || this.sys.game.device.os.iOS;
+
+       // PLAYER MOBILE CONTROLS
+            const accelRadius = 150;
+            const accelX = 50 + accelRadius;
+            const accelY = this.scale.height - 30 - accelRadius;
+
+            // Draw translucent circle for accelerator
+            this.accelButtonBg = this.add.circle(accelX, accelY, accelRadius, 0xffffff, 0.25)
+                .setScrollFactor(0)
+                .setDepth(200)
+                .setVisible(this.isMobile); // Only visible on mobile
+
+            // Add invisible interactive area for touch
+            this.accelButton = this.add.circle(accelX, accelY, accelRadius, 0xffffff, 0.01)
+                .setInteractive({ useHandCursor: false })
+                .setScrollFactor(0)
+                .setDepth(201)
+                .setVisible(this.isMobile); // Only visible on mobile
+
+            // Track state
+            this.isAccelerating = false;
+
+            // Touch events (only on mobile)
+            if (this.isMobile) {
+                this.accelButton.on('pointerdown', () => { this.isAccelerating = true; });
+                this.accelButton.on('pointerup', () => { this.isAccelerating = false; });
+                this.accelButton.on('pointerout', () => { this.isAccelerating = false; });
+            }
+
+        // Steering joystick setup
+        const steerRadius = 100;
+        const steerX = 650 + steerRadius;
+        const steerY = this.scale.height - 150; // Place above accelerator
+
+        // Draw translucent circle for steering
+        this.steerJoyBg = this.add.circle(steerX, steerY, steerRadius, 0xffffff, 0.18)
             .setScrollFactor(0)
             .setDepth(200);
 
         // Add invisible interactive area for touch
-        this.accelButton = this.add.circle(accelX, accelY, accelRadius, 0xffffff, 0.01)
+        this.steerJoyArea = this.add.circle(steerX, steerY, steerRadius, 0xffffff, 0.01)
             .setInteractive({ useHandCursor: false })
             .setScrollFactor(0)
             .setDepth(201);
 
-        // Track state
-        this.isAccelerating = false;
+        // Create center dot (green)
+        this.steerCenterDot = this.add.circle(steerX, steerY, 5, 0x00ff00, 1)
+            .setScrollFactor(0)
+            .setDepth(202);
 
-        // Touch events
-        this.accelButton.on('pointerdown', () => { this.isAccelerating = true; });
-        this.accelButton.on('pointerup', () => { this.isAccelerating = false; });
-        this.accelButton.on('pointerout', () => { this.isAccelerating = false; });
+        // Create pointer position dot (white)
+        this.steerPointerDot = this.add.circle(steerX, steerY, 8, 0xffffff, 0.8)
+            .setScrollFactor(0)
+            .setDepth(203)
+            .setVisible(false); // Only show when active
+        
+            // State for joystick
+        this.steerInput = { active: false, angle: 0, force: 0 };
 
-        // Steering joystick setup
-const steerRadius = 150;
-const steerX = 1150 + steerRadius;
-const steerY = this.scale.height - 200; // Place above accelerator
+        // Then update your pointer event handlers:
+        // When pointer is down
+        this.steerJoyArea.on('pointerdown', pointer => {
+            this.steerInput.active = true;
+            this.steerInput.startX = pointer.x;
+            this.steerInput.startY = pointer.y;
+            this.steerPointerDot.setVisible(true); // Show the pointer dot
+            this.steerPointerDot.setPosition(pointer.x, pointer.y);
+        });
 
-// Draw translucent circle for steering
-this.steerJoyBg = this.add.circle(steerX, steerY, steerRadius, 0xffffff, 0.18)
-    .setScrollFactor(0)
-    .setDepth(200);
+        // When pointer is up
+        this.steerJoyArea.on('pointerup', () => {
+            this.steerInput.active = false;
+            this.steerInput.force = 0;
+            this.steerPointerDot.setVisible(false); // Hide the pointer dot
+        });
 
-// Add invisible interactive area for touch
-this.steerJoyArea = this.add.circle(steerX, steerY, steerRadius, 0xffffff, 0.01)
-    .setInteractive({ useHandCursor: false })
-    .setScrollFactor(0)
-    .setDepth(201);
+        // When pointer moves out
+        this.steerJoyArea.on('pointerout', () => {
+            this.steerInput.active = false;
+            this.steerInput.force = 0;
+            this.steerPointerDot.setVisible(false); // Hide the pointer dot
+        });
 
-// State for joystick
-this.steerInput = { active: false, angle: 0, force: 0 };
-
-// Touch events for steering
-this.steerJoyArea.on('pointerdown', pointer => {
-    this.steerInput.active = true;
-    this.steerInput.startX = pointer.x;
-    this.steerInput.startY = pointer.y;
-});
-this.steerJoyArea.on('pointerup', () => {
-    this.steerInput.active = false;
-    this.steerInput.force = 0;
-});
-this.steerJoyArea.on('pointerout', () => {
-    this.steerInput.active = false;
-    this.steerInput.force = 0;
-});
-this.steerJoyArea.on('pointermove', pointer => {
-    if (this.steerInput.active) {
-        const dx = pointer.x - steerX;
-        const dy = pointer.y - steerY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        this.steerInput.angle = Math.atan2(dy, dx); // Radians
-        this.steerInput.force = Math.min(dist / steerRadius, 1); // 0..1
-    }
-});
+        // When pointer moves
+        this.steerJoyArea.on('pointermove', pointer => {
+            if (this.steerInput.active) {
+                const dx = pointer.x - steerX;
+                const dy = pointer.y - steerY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                this.steerInput.angle = Math.atan2(dy, dx); // Radians
+                this.steerInput.force = Math.min(dist / steerRadius, 1); // 0..1
+                
+                // Update pointer dot position
+                this.steerPointerDot.setPosition(pointer.x, pointer.y);
+            }
+        });
 
         // START BUTTON (centered, visible only before race starts)
     this.startButton = this.add.text(
@@ -303,23 +336,23 @@ this.steerJoyArea.on('pointermove', pointer => {
             align: 'center',
             stroke: '#000', strokeThickness: 4
         }
-    ).setOrigin(0.5)
-     .setInteractive({ useHandCursor: true })
-     .setDepth(300)
-     .setVisible(true);
+            ).setOrigin(0.5)
+            .setInteractive({ useHandCursor: true })
+            .setDepth(300)
+            .setVisible(true);
 
-    // Touch/click event
-    this.startButton.on('pointerdown', () => {
-        if (!this.countdownActive && !this.raceStarted) {
-            this.startButton.setVisible(true);
-            this.startCountdown();
-        }
-    });
-
-        // Start game timer activates key function
-        this.input.keyboard.on('keydown-SPACE', () => {
+        // In create(), after creating the startButton:
+        this.startButton.on('pointerdown', () => {
             if (!this.countdownActive && !this.raceStarted) {
+                this.startButton.setVisible(false); // Hide when pressed
                 this.startCountdown();
+            }
+        });
+
+        this.input.keyboard.on('keydown-SPACE', () => {
+        if (!this.countdownActive && !this.raceStarted) {
+            this.startButton.setVisible(false); // Hide when space pressed
+            this.startCountdown();
             }
         });
 
@@ -335,14 +368,26 @@ this.steerJoyArea.on('pointermove', pointer => {
         console.log('Game Loaded');
     }
 
-    update(time, delta) {
+    update(delta) {
+
+        let dt = Math.min(delta / 1000, 1 / 30); //// Cap at 1/30th of a second
+
         if (this.raceStarted) {
-            this.player.update(time, delta, {
-                                accelerate: this.isAccelerating,
-                                steer: this.steerInput // pass the whole steerInput object
-                                }); 
-            this.drivers.forEach(driver => driver.update(delta / 1000));
-            
+            // Desktop: accelerate with space bar, mobile: with button
+            let accelerate = false;
+            if (this.isMobile) {
+                accelerate = this.isAccelerating;
+            } else {
+                accelerate = this.input.keyboard.addKey('SPACE').isDown;
+                }
+        
+        // Only allow steering from joystick area on both platforms
+        this.player.update(dt, {
+            accelerate: accelerate,
+            steer: this.steerInput
+        });
+            this.drivers.forEach(driver => driver.update(dt));
+
             // Update prevX for lap direction check
             this.cars.forEach(car => {
                 car.prevX = car.x
@@ -581,6 +626,7 @@ this.steerJoyArea.on('pointermove', pointer => {
         this.countdownText.setVisible(true);
         this.countdownText.setText(this.countdown);
 
+        // In startCountdown(), after race starts:
         this.countdownEvent = this.time.addEvent({
             delay: 1000,
             repeat: 4,
@@ -594,6 +640,7 @@ this.steerJoyArea.on('pointermove', pointer => {
                     this.raceStarted = true;
                     this.raceStartTime = this.time.now;
                     this.lapStartTime = this.time.now;
+                    this.startButton.setVisible(false); // Ensure hidden
                     this.time.delayedCall(500, () => {
                         this.countdownText.setVisible(false);
                     });
@@ -602,8 +649,7 @@ this.steerJoyArea.on('pointermove', pointer => {
             callbackScope: this
         });
     }
-
-    initGameUi() {
+        initGameUi() {
 
         this.raceStatusBG = this.add.graphics();
         this.raceStatusBG.fillStyle(0x111111, 0.5); // dark, semi-transparent

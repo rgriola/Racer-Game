@@ -5,7 +5,7 @@ export default class Player extends Phaser.Physics.Matter.Image {
     // FROM THIS CLASS
 
     velocityIncrement = .5;
-    velocityMax = 217; // 69.1 mph
+    velocityMax = 3.5; // 69.1 mph
     drag = 10;
     health = 1;
     bodyVelocityText = null;
@@ -69,22 +69,8 @@ export default class Player extends Phaser.Physics.Matter.Image {
             this.directionDot.fillCircle(0, 0, 2); // 2px radius, adjust as needed
             this.directionDot.setDepth(101);
 
-        // CONTROLS THE CAR STEERING - USES TRACK PAD
-        scene.input.on('pointermove', pointer => {
-        // Limit to 4 degrees per pointer event (tweak as needed)
+        // Define max turn angle for joystick steering
         this.maxTurnAngle = Phaser.Math.DegToRad(2.5);
-        
-        if (this.currentSpeed > 0) {
-            const targetAngle = Phaser.Math.Angle.Between(this.x, this.y, pointer.worldX, pointer.worldY);
-            let delta = Phaser.Math.Angle.Wrap(targetAngle - this.rotation);
-
-            // Clamp the turn rate
-            delta = Phaser.Math.Clamp(delta, -this.maxTurnAngle, this.maxTurnAngle);
-
-            this.setRotation(this.rotation + delta);
-            this.pointerAngleDeg = Phaser.Math.RadToDeg(this.rotation);
-            }
-        });
 
         //SPACE BAR IS ACCELERATOR
         this.spaceKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
@@ -109,8 +95,9 @@ export default class Player extends Phaser.Physics.Matter.Image {
         console.log('Player Constructor');
     }
 
-    update(time, delta, input = {}) {
-        this.checkInput(input);
+    update(dt, input = {}) {
+        // Pass dt in seconds to checkInput
+        this.checkInput(dt, input);
         //this.updatePixelsPerSecond();
         this.updateMph();
         this.prevX = this.x; // checks movement
@@ -122,6 +109,42 @@ export default class Player extends Phaser.Physics.Matter.Image {
         const dotY = this.y + Math.sin(angle) * offset;
         this.directionDot.setPosition(dotX, dotY);
     }
+        checkInput(dt, input = {} ) {
+        // Acceleration logic
+        const acceleration = this.velocityIncrement * this.plusAccel;
+        const deceleration = this.velocityIncrement * this.minusDecel;
+
+        const accelerating = (this.spaceKey && this.spaceKey.isDown) || input.accelerate;
+
+        if (accelerating) {
+            this.currentSpeed = Math.min(this.currentSpeed + acceleration * dt, this.velocityMax);
+        } else {
+            this.currentSpeed = Math.max(this.currentSpeed - deceleration * dt, 0);
+        }
+        console.log(`Current Speed: ${this.currentSpeed}`, this.body.velocity.x,`,`, this.body.velocity.y);
+
+        // Steering logic (use input.steer if present)
+        let steerAngular = 0;
+        if (input.steer && input.steer.active && input.steer.force > 0.2) {
+            const desiredAngle = input.steer.angle;
+            const carAngle = this.rotation;
+            let angleDiff = Phaser.Math.Angle.Wrap(desiredAngle - carAngle);
+            const steerStrength = 0.12 * input.steer.force;
+            if (angleDiff > 0.1) {
+                steerAngular = steerStrength;
+            } else if (angleDiff < -0.1) {
+                steerAngular = -steerStrength;
+            }
+        }
+        this.setAngularVelocity(steerAngular);
+
+        // Apply velocity in the direction of the car's nose (pixels per second)
+        const angle = this.rotation;
+        this.setVelocity(
+            Math.cos(angle) * this.currentSpeed,
+            Math.sin(angle) * this.currentSpeed
+        );
+}
 
     updateMph() {
         const velocity = this.body.velocity;
@@ -148,45 +171,6 @@ export default class Player extends Phaser.Physics.Matter.Image {
         const speedPps = Math.sqrt(velocity.x ** 2 + velocity.y ** 2) * stepsPerSecond;
         this.bodyVelocityText.setText(`Speed: ${speedPps.toFixed(1)} px/s`);
     }
-
-    checkInput(input = {}) {
-        // Acceleration logic
-        const stepsPerSecond = 60;
-        const velocityMaxPerStep = this.velocityMax / stepsPerSecond;
-        const acceleration = (this.velocityIncrement * this.plusAccel) / stepsPerSecond;
-        const deceleration = (this.velocityIncrement * this.minusDecel) / stepsPerSecond;
-
-        const accelerating = (this.spaceKey && this.spaceKey.isDown) || input.accelerate;
-
-        if (accelerating) {
-            this.currentSpeed = Math.min(this.currentSpeed + acceleration, velocityMaxPerStep);
-        } else {
-            this.currentSpeed = Math.max(this.currentSpeed - deceleration, 0);
-        }
-
-        // Steering logic (use input.steer if present)
-        let steerAngular = 0;
-        if (input.steer && input.steer.active && input.steer.force > 0.2) {
-            // For left-facing car, offset by Math.PI
-            const desiredAngle = input.steer.angle;
-            const carAngle = this.rotation;
-            let angleDiff = Phaser.Math.Angle.Wrap(desiredAngle - carAngle);
-            const steerStrength = 0.07 * input.steer.force;
-            if (angleDiff > 0.1) {
-                steerAngular = steerStrength;
-            } else if (angleDiff < -0.1) {
-                steerAngular = -steerStrength;
-            }
-        }
-        this.setAngularVelocity(steerAngular);
-
-        // Apply velocity in the direction of the car's nose
-        const angle = this.rotation;
-        this.setVelocity(
-            Math.cos(angle) * this.currentSpeed,
-            Math.sin(angle) * this.currentSpeed
-        );
-}
 
     die() {
         this.scene.addExplosion(this.x, this.y);
