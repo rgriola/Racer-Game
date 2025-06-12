@@ -59,7 +59,8 @@ export default class Track {
         }
         
         // Background
-        this.scene.add.image(400, 300, 'bg_track').setDepth(-100);
+        this.scene.add.image(400, 300, 'bg_track')
+        .setDepth(-100);
 
         
         // Lapline

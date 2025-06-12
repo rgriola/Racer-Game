@@ -29,12 +29,13 @@ export class Game extends Scene {
     }
 
        create() {
+
+
         // TRACK SETUP
         this.track = new Track(this);
         this.track.createTrack();
         this.trackWaypoints = this.track.trackWaypoints;
         this.lapline = this.track.lapline;
-
 
         // Car configs for AI cars
         const poleX = 630;
@@ -409,7 +410,7 @@ export class Game extends Scene {
 
 
         }
-        
+
             // DEBUG ITEMS
             this.carDebugText.setText(this.getCarDebugText(this.cars[1], 'CAR 1'));
             this.carDebugText.setVisible(window.DEBUG);
@@ -419,6 +420,10 @@ export class Game extends Scene {
             this.pointerDebugText.setText(
                 `Pointer: (${pointer.worldX.toFixed(0)}, ${pointer.worldY.toFixed(0)})`);
     }
+
+   // Replace your current moveMyKid function with this:
+
+
 
     initLeaderBoard(){
         // Initial Leader Board order

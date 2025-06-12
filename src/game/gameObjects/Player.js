@@ -115,7 +115,7 @@ export default class Player extends Phaser.Physics.Matter.Image {
         const deceleration = this.velocityIncrement * this.minusDecel;
 
         const accelerating = (this.spaceKey && this.spaceKey.isDown) || input.accelerate;
-
+            
         if (accelerating) {
             this.currentSpeed = Math.min(this.currentSpeed + acceleration * dt, this.velocityMax);
         } else {

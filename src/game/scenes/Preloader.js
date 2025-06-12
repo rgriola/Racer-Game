@@ -44,7 +44,7 @@ export class Preloader extends Phaser.Scene {
         this.load.image('wall_red_200', 'assets/track/wall_red_200.png');
         this.load.image('wall_white_100_vert', 'assets/track/wall_white_100_vert.png');
         this.load.image('wall_white_100', 'assets/track/wall_white_100.png');
-        
+
     
     // Load the car images from carConfig.js
     for (let type in CAR_CONFIG) {
