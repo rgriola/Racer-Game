@@ -337,7 +337,10 @@ this.steerJoyArea.on('pointermove', pointer => {
 
     update(time, delta) {
         if (this.raceStarted) {
-            this.player.update(time, delta, { accelerate: this.isAccelerating });
+            this.player.update(time, delta, {
+                                accelerate: this.isAccelerating,
+                                steer: this.steerInput // pass the whole steerInput object
+                                }); 
             this.drivers.forEach(driver => driver.update(delta / 1000));
             
             // Update prevX for lap direction check
@@ -359,11 +362,9 @@ this.steerJoyArea.on('pointermove', pointer => {
             const currentLapTime = (this.time.now - this.lapStartTime) / 1000;
             this.lapTimerText.setText(`Lap Time: ${currentLapTime.toFixed(2)}`);
 
-            this.steering_Logic();
 
         }
         
-    
             // DEBUG ITEMS
             this.carDebugText.setText(this.getCarDebugText(this.cars[1], 'CAR 1'));
             this.carDebugText.setVisible(window.DEBUG);
@@ -373,27 +374,6 @@ this.steerJoyArea.on('pointermove', pointer => {
             this.pointerDebugText.setText(
                 `Pointer: (${pointer.worldX.toFixed(0)}, ${pointer.worldY.toFixed(0)})`);
     }
-
-    steering_Logic() {
-    if (this.steerInput && this.steerInput.active && this.steerInput.force > 0.2) {
-        // Offset by Math.PI for left-facing car
-       // const desiredAngle = this.steerInput.angle + Math.PI;
-       const desiredAngle = this.steerInput.angle;
-        const carAngle = this.player.rotation;
-        let angleDiff = Phaser.Math.Angle.Wrap(desiredAngle - carAngle);
-
-        const steerStrength = 0.07 * this.steerInput.force; // Adjust as needed
-        if (angleDiff > 0.1) {
-            this.player.setAngularVelocity(steerStrength);
-        } else if (angleDiff < -0.1) {
-            this.player.setAngularVelocity(-steerStrength);
-        } else {
-            this.player.setAngularVelocity(0);
-        }
-    } else {
-        this.player.setAngularVelocity(0);
-    }
-}
 
     initLeaderBoard(){
         // Initial Leader Board order

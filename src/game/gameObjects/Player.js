@@ -150,36 +150,42 @@ export default class Player extends Phaser.Physics.Matter.Image {
     }
 
     checkInput(input = {}) {
-        // SPEED IS CONTROLED BY THE SPACE BAR
+        // Acceleration logic
         const stepsPerSecond = 60;
         const velocityMaxPerStep = this.velocityMax / stepsPerSecond;
-        const acceleration = (this.velocityIncrement * this.plusAccel) / stepsPerSecond; // Tune this value for feel
-        const deceleration = (this.velocityIncrement * this.minusDecel) / stepsPerSecond; // Tune for how quickly it slows down
+        const acceleration = (this.velocityIncrement * this.plusAccel) / stepsPerSecond;
+        const deceleration = (this.velocityIncrement * this.minusDecel) / stepsPerSecond;
 
-            // Accepts: input.accelerate (boolean)
         const accelerating = (this.spaceKey && this.spaceKey.isDown) || input.accelerate;
 
         if (accelerating) {
-        // Accelerate up to max speed
-        this.currentSpeed = Math.min(this.currentSpeed + acceleration, velocityMaxPerStep);
-        const angle = this.rotation;
-        this.setVelocity(
-            Math.cos(angle) * this.currentSpeed,
-            Math.sin(angle) * this.currentSpeed
-        );
-    } else {
-        // Decelerate to zero
-        this.currentSpeed = Math.max(this.currentSpeed - deceleration, 0);
-        const angle = this.rotation;
-        this.setVelocity(
-            Math.cos(angle) * this.currentSpeed,
-            Math.sin(angle) * this.currentSpeed
-        );
-        if (this.currentSpeed < 0.5) {
-            this.setVelocity(0, 0);
-            this.currentSpeed = 0;
+            this.currentSpeed = Math.min(this.currentSpeed + acceleration, velocityMaxPerStep);
+        } else {
+            this.currentSpeed = Math.max(this.currentSpeed - deceleration, 0);
         }
-    }
+
+        // Steering logic (use input.steer if present)
+        let steerAngular = 0;
+        if (input.steer && input.steer.active && input.steer.force > 0.2) {
+            // For left-facing car, offset by Math.PI
+            const desiredAngle = input.steer.angle + Math.PI;
+            const carAngle = this.rotation;
+            let angleDiff = Phaser.Math.Angle.Wrap(desiredAngle - carAngle);
+            const steerStrength = 0.07 * input.steer.force;
+            if (angleDiff > 0.1) {
+                steerAngular = steerStrength;
+            } else if (angleDiff < -0.1) {
+                steerAngular = -steerStrength;
+            }
+        }
+        this.setAngularVelocity(steerAngular);
+
+        // Apply velocity in the direction of the car's nose
+        const angle = this.rotation;
+        this.setVelocity(
+            Math.cos(angle) * this.currentSpeed,
+            Math.sin(angle) * this.currentSpeed
+        );
 }
 
     die() {
